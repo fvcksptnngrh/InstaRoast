@@ -93,47 +93,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Try to fetch real Instagram data first
-    const realProfile = await fetchInstagramPublicProfile(username)
-    
-    if (realProfile) {
-      console.log('Successfully fetched real Instagram data for:', username)
-      return NextResponse.json(realProfile)
-    }
-
-    // Fallback to mock data
-    console.log('Using mock data for:', username)
-    
-    // Check if we have mock data for this username
-    const profile = mockProfiles[username.toLowerCase() as keyof typeof mockProfiles]
-
-    if (!profile) {
-      // Generate random profile data for unknown usernames
-      const randomNames = ['John Doe', 'Jane Smith', 'Alex Johnson', 'Sam Wilson', 'Taylor Swift']
-      const randomBios = [
-        'Living my best life ✨',
-        'Adventure seeker 🌍',
-        'Coffee addict ☕',
-        'Fitness enthusiast 💪',
-        'Creative soul 🎨'
-      ]
-
-      const mockProfile = {
-        username: username.toLowerCase(),
-        fullName: randomNames[Math.floor(Math.random() * randomNames.length)],
-        bio: randomBios[Math.floor(Math.random() * randomBios.length)],
-        followers: Math.floor(Math.random() * 1000000) + 1000,
-        following: Math.floor(Math.random() * 1000) + 100,
-        posts: Math.floor(Math.random() * 500) + 50,
-        profilePic: `https://picsum.photos/150/150?random=${Math.floor(Math.random() * 1000)}`,
-        isPrivate: Math.random() > 0.8,
-        isVerified: Math.random() > 0.7
+    const response = await fetch(
+      `https://instagram-data1.p.rapidapi.com/user/info?username=${username}`,
+      {
+        headers: {
+          'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '1c48ec8e70msh5ca9270d30d4920p13e8a5jsn5c6205d3bc24',
+          'X-RapidAPI-Host': 'instagram-data1.p.rapidapi.com',
+        },
       }
+    )
 
-      return NextResponse.json(mockProfile)
+    if (!response.ok) {
+      throw new Error('Failed to fetch from RapidAPI')
     }
 
-    return NextResponse.json(profile)
+    const data = await response.json()
+    const user = data.user
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    return NextResponse.json({
+      username: user.username,
+      fullName: user.full_name,
+      bio: user.biography || '',
+      followers: user.edge_followed_by?.count || 0,
+      following: user.edge_follow?.count || 0,
+      posts: user.edge_owner_to_timeline_media?.count || 0,
+      profilePic: user.profile_pic_url_hd || user.profile_pic_url || `https://picsum.photos/150/150?random=${Math.floor(Math.random() * 1000)}`,
+      isPrivate: user.is_private || false,
+      isVerified: user.is_verified || false
+    })
   } catch (error) {
     console.error('Profile API error:', error)
     return NextResponse.json(

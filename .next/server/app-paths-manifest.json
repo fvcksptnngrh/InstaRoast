@@ -1,6 +1,3 @@
 {
-  "/page": "app/page.js",
-  "/api/feed/route": "app/api/feed/route.js",
-  "/api/profile/route": "app/api/profile/route.js",
-  "/api/roast/route": "app/api/roast/route.js"
+  "/page": "app/page.js"
 }
