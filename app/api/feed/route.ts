@@ -52,18 +52,18 @@ async function fetchInstagramPublicFeed(username: string) {
     
     // Find most liked post
     const mostLikedPost = posts.reduce((max: any, post: any) => 
-      (post.edge_liked_by?.count || 0) > (max.edge_liked_by?.count || 0) ? post : max, 
-      posts[0]
+      (post.like_count || 0) > (max.like_count || 0) ? post : max, 
+      posts[0] || null
     )
 
     // Extract hashtags and mentions
     const allHashtags = posts
-      .flatMap((post: any) => post.edge_media_to_caption.edges.flatMap((edge: any) => edge.node.text.match(/#\w+/g) || []))
+      .flatMap((post: any) => post.caption?.match(/#\w+/g) || [])
     
     const uniqueHashtags = [...new Set(allHashtags)]
 
     const allMentions = posts
-      .flatMap((post: any) => post.edge_media_to_caption.edges.flatMap((edge: any) => edge.node.text.match(/@\w+/g) || []))
+      .flatMap((post: any) => post.caption?.match(/@\w+/g) || [])
     
     const uniqueMentions = [...new Set(allMentions)]
 
