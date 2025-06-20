@@ -88,46 +88,64 @@ export async function POST(request: NextRequest) {
 
     if (!username) {
       return NextResponse.json(
-        { error: 'Username is required' },
+        { error: 'Username wajib diisi' },
         { status: 400 }
       )
     }
 
-    const response = await fetch(
-      `https://instagram-data1.p.rapidapi.com/user/info?username=${username}`,
-      {
-        headers: {
-          'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '1c48ec8e70msh5ca9270d30d4920p13e8a5jsn5c6205d3bc24',
-          'X-RapidAPI-Host': 'instagram-data1.p.rapidapi.com',
-        },
+    // 1. Coba RapidAPI
+    try {
+      const response = await fetch(
+        `https://instagram-data1.p.rapidapi.com/user/info?username=${username}`,
+        {
+          headers: {
+            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '1c48ec8e70msh5ca9270d30d4920p13e8a5jsn5c6205d3bc24',
+            'X-RapidAPI-Host': 'instagram-data1.p.rapidapi.com',
+          },
+        }
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        const user = data.user
+        if (user) {
+          return NextResponse.json({
+            username: user.username,
+            fullName: user.full_name,
+            bio: user.biography || '',
+            followers: user.edge_followed_by?.count || 0,
+            following: user.edge_follow?.count || 0,
+            posts: user.edge_owner_to_timeline_media?.count || 0,
+            profilePic: user.profile_pic_url_hd || user.profile_pic_url || `https://picsum.photos/150/150?random=${Math.floor(Math.random() * 1000)}`,
+            isPrivate: user.is_private || false,
+            isVerified: user.is_verified || false
+          })
+        }
       }
+    } catch (err) {
+      // Lanjut ke fallback
+    }
+
+    // 2. Fallback: Coba fetch langsung dari Instagram Web API
+    const user = await fetchInstagramPublicProfile(username)
+    if (user) {
+      return NextResponse.json(user)
+    }
+
+    // 3. Fallback: Mock data (hanya untuk username tertentu)
+    if (username in mockProfiles) {
+      return NextResponse.json(mockProfiles[username as keyof typeof mockProfiles])
+    }
+
+    // Jika semua gagal
+    return NextResponse.json(
+      { error: 'Gagal mengambil data profil. Username tidak ditemukan atau terjadi kesalahan.' },
+      { status: 404 }
     )
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch from RapidAPI')
-    }
-
-    const data = await response.json()
-    const user = data.user
-    if (!user) {
-      throw new Error('User not found')
-    }
-
-    return NextResponse.json({
-      username: user.username,
-      fullName: user.full_name,
-      bio: user.biography || '',
-      followers: user.edge_followed_by?.count || 0,
-      following: user.edge_follow?.count || 0,
-      posts: user.edge_owner_to_timeline_media?.count || 0,
-      profilePic: user.profile_pic_url_hd || user.profile_pic_url || `https://picsum.photos/150/150?random=${Math.floor(Math.random() * 1000)}`,
-      isPrivate: user.is_private || false,
-      isVerified: user.is_verified || false
-    })
   } catch (error) {
     console.error('Profile API error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch profile data' },
+      { error: 'Gagal mengambil data profil. Terjadi kesalahan pada server.' },
       { status: 500 }
     )
   }
