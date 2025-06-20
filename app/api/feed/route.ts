@@ -144,17 +144,19 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await fetch(
-      `https://instagram-data1.p.rapidapi.com/user/posts?username=${username}`,
+      `https://instagram-data1.p.rapidapi.com/user/info?username=${username}`,
       {
         headers: {
-          'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '1c48ec8e70msh5ca9270d30d4920p13e8a5jsn5c6205d3bc24',
+          'X-RapidAPI-Key': String(process.env.RAPIDAPI_KEY),
           'X-RapidAPI-Host': 'instagram-data1.p.rapidapi.com',
         },
       }
     )
 
     if (!response.ok) {
-      throw new Error('Failed to fetch from RapidAPI')
+      const errorText = await response.text();
+      console.error('RapidAPI error:', response.status, errorText);
+      throw new Error('Failed to fetch from RapidAPI');
     }
 
     const data = await response.json()
