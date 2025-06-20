@@ -45,27 +45,27 @@ async function fetchInstagramPublicFeed(username: string) {
 
     // Calculate statistics
     const totalPosts = posts.length
-    const totalLikes = posts.reduce((sum, post) => sum + post.like_count, 0)
-    const totalComments = posts.reduce((sum, post) => sum + post.comments_count, 0)
+    const totalLikes = posts.reduce((sum: number, post: any) => sum + (post.like_count || 0), 0)
+    const totalComments = posts.reduce((sum: number, post: any) => sum + (post.comments_count || 0), 0)
     const averageLikes = totalPosts > 0 ? Math.round(totalLikes / totalPosts) : 0
     const averageComments = totalPosts > 0 ? Math.round(totalComments / totalPosts) : 0
     
     // Find most liked post
-    const mostLikedPost = posts.reduce((max, post) => 
-      post.like_count > max.like_count ? post : max, posts[0] || null
+    const mostLikedPost = posts.reduce((max: any, post: any) => 
+      (post.edge_liked_by?.count || 0) > (max.edge_liked_by?.count || 0) ? post : max, 
+      posts[0]
     )
 
     // Extract hashtags and mentions
-    const hashtags: string[] = []
-    const mentions: string[] = []
+    const allHashtags = posts
+      .flatMap((post: any) => post.edge_media_to_caption.edges.flatMap((edge: any) => edge.node.text.match(/#\w+/g) || []))
     
-    posts.forEach(post => {
-      const hashtagMatches = post.caption.match(/#\w+/g) || []
-      const mentionMatches = post.caption.match(/@\w+/g) || []
-      
-      hashtags.push(...hashtagMatches)
-      mentions.push(...mentionMatches)
-    })
+    const uniqueHashtags = [...new Set(allHashtags)]
+
+    const allMentions = posts
+      .flatMap((post: any) => post.edge_media_to_caption.edges.flatMap((edge: any) => edge.node.text.match(/@\w+/g) || []))
+    
+    const uniqueMentions = [...new Set(allMentions)]
 
     return {
       posts,
@@ -74,8 +74,8 @@ async function fetchInstagramPublicFeed(username: string) {
       averageComments,
       engagementRate: 0, // Would need follower count for accurate calculation
       mostLikedPost,
-      hashtags: Array.from(new Set(hashtags)),
-      mentions: Array.from(new Set(mentions))
+      hashtags: uniqueHashtags,
+      mentions: uniqueMentions
     }
 
   } catch (error) {
