@@ -205,4 +205,4 @@ Jika ada masalah atau pertanyaan:
 
 ---
 
-**Dibuat dengan ❤️ dan AI - Hanya untuk hiburan semata! 🔥** 
+**Dibuat Hanya untuk hiburan semata! 🔥** 
