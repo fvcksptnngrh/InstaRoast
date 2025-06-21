@@ -107,22 +107,46 @@ export async function POST(request: NextRequest) {
 
       if (response.ok) {
         const data = await response.json()
-        const user = data.user
-        if (user) {
+        console.log('--- Instagram Looter 2 API Response ---');
+        console.log(JSON.stringify(data, null, 2));
+
+        // PENTING: Struktur data mungkin berbeda. Kita akan coba beberapa kemungkinan.
+        // Coba struktur 1: data langsung
+        let user = data; 
+        
+        // Coba struktur 2: data di dalam properti 'user'
+        if (data.user) {
+          user = data.user
+        } 
+        // Coba struktur 3: data di dalam properti 'data'
+        else if (data.data) {
+          user = data.data
+        }
+
+        if (user && user.username) {
+          console.log('User data found, processing...');
           return NextResponse.json({
             username: user.username,
-            fullName: user.full_name,
-            bio: user.biography || '',
-            followers: user.edge_followed_by?.count || 0,
-            following: user.edge_follow?.count || 0,
-            posts: user.edge_owner_to_timeline_media?.count || 0,
+            fullName: user.full_name || user.fullName, // Cek kedua kemungkinan nama properti
+            bio: user.biography || user.bio,
+            followers: user.edge_followed_by?.count ?? user.follower_count ?? 0,
+            following: user.edge_follow?.count ?? user.following_count ?? 0,
+            posts: user.edge_owner_to_timeline_media?.count ?? user.media_count ?? 0,
             profilePic: user.profile_pic_url_hd || user.profile_pic_url || `https://picsum.photos/150/150?random=${Math.floor(Math.random() * 1000)}`,
-            isPrivate: user.is_private || false,
-            isVerified: user.is_verified || false
+            isPrivate: user.is_private ?? false,
+            isVerified: user.is_verified ?? false
           })
+        } else {
+           console.log('User data not found in response, falling back...');
         }
+      } else {
+        console.error('--- Instagram Looter 2 API Error ---');
+        console.error(`Status: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Response: ${errorText}`);
       }
     } catch (err) {
+      console.error('--- Error in RapidAPI fetch block ---', err);
       // Lanjut ke fallback
     }
 
