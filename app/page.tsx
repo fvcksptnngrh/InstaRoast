@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Flame, Instagram, Zap, Sparkles, ArrowRight, RefreshCw, Github } from 'lucide-react'
 import RoastForm from './components/RoastForm'
 import ProfileCard from './components/ProfileCard'
 import RoastResult from './components/RoastResult'
 import Header from './components/Header'
+import StatsBox from './components/StatsBox'
 
 interface ProfileData {
   username: string
@@ -43,6 +44,46 @@ export default function Home() {
   const [feedData, setFeedData] = useState<FeedData | null>(null)
   const [roastData, setRoastData] = useState<RoastData | null>(null)
   const [error, setError] = useState('')
+  const [stats, setStats] = useState({
+    totalRoasts: 145,
+    todayRoasts: 23,
+    topRoaster: "cristiano",
+    averageRating: 4.8
+  })
+
+  // Fetch stats on component mount
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data)
+      }
+    } catch (error) {
+      console.error('Error fetching stats:', error)
+    }
+  }
+
+  const updateStats = async (username: string) => {
+    try {
+      const response = await fetch('/api/stats', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username })
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data.stats)
+      }
+    } catch (error) {
+      console.error('Error updating stats:', error)
+    }
+  }
 
   const handleRoast = async (inputUsername: string) => {
     if (!inputUsername.trim()) {
@@ -103,6 +144,9 @@ export default function Home() {
       setRoastData(roast)
       setUsername(inputUsername)
 
+      // Update stats after successful roast
+      await updateStats(inputUsername)
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
     } finally {
@@ -149,7 +193,15 @@ export default function Home() {
 
         <div className="max-w-4xl mx-auto">
           {!profileData ? (
-            <RoastForm onSubmit={handleRoast} isLoading={isLoading} error={error} />
+            <>
+              <StatsBox 
+                totalRoasts={stats.totalRoasts}
+                todayRoasts={stats.todayRoasts}
+                topRoaster={stats.topRoaster}
+                averageRating={stats.averageRating}
+              />
+              <RoastForm onSubmit={handleRoast} isLoading={isLoading} error={error} />
+            </>
           ) : (
             <motion.div
               initial={{ opacity: 0 }}
