@@ -93,14 +93,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 1. Coba RapidAPI
+    // 1. Coba RapidAPI (menggunakan Instagram Looter 2)
     try {
       const response = await fetch(
-        `https://instagram-data1.p.rapidapi.com/user/info?username=${username}`,
+        `https://instagram-looter2.p.rapidapi.com/profile/info?username=${username}`,
         {
           headers: {
-            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '1c48ec8e70msh5ca9270d30d4920p13e8a5jsn5c6205d3bc24',
-            'X-RapidAPI-Host': 'instagram-data1.p.rapidapi.com',
+            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || 'YOUR_FALLBACK_KEY_HERE',
+            'X-RapidAPI-Host': 'instagram-looter2.p.rapidapi.com',
           },
         }
       )
