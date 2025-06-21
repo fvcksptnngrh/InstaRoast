@@ -26,20 +26,55 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
     
-    // ✅ FIX: Updated model name and configuration  
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash", // Fixed from "gemini-pro"
+    // ✅ NEW: Adjust generation config for more creativity
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
       generationConfig: {
-        temperature: 0.9,
-        topK: 1,
-        topP: 1,
-        maxOutputTokens: 200,
+        temperature: 1.0,      // Max creativity
+        topK: 40,            // Widen the choice of next words
+        topP: 0.95,          // Standard nucleus sampling
+        maxOutputTokens: 250,
       },
     })
     
-    const prompt = `Buatkan roasting lucu, savage, dan tanpa menggunakan hashtag untuk profil Instagram berikut.\nGunakan bahasa Indonesia yang santai, gaul, dan sering dipakai remaja zaman sekarang.\nPakai kata-kata populer seperti: cringe, vibes, flexing, mager, auto, baper, FOMO, insecure, dll.\nJangan menyinggung SARA. Jawaban maksimal 3 kalimat.\n\nUsername: ${username}\nBio: ${profileData?.bio || profileData?.biography || 'bio basic'}\nJumlah followers: ${profileData?.followers?.toLocaleString() || 'beberapa'}\nJumlah postingan: ${profileData?.posts?.toString() || 'beberapa'}\n`;
+    // ✅ NEW: Chain-of-Thought Prompting
+    const bio = profileData?.bio || profileData?.biography || "Tidak ada bio";
+    const posts = profileData?.posts ?? 0;
+    const followers = profileData?.followers || 0;
+    const following = profileData?.following || 0;
+    const isPrivate = profileData?.isPrivate ? "Private" : "Publik";
     
-    console.log('Generating roast for:', username)
+    const prompt = `
+Persona: Kamu adalah seorang komika stand-up yang cerdas dan jago observasi. Job-mu adalah melihat profil Instagram dan mengubahnya menjadi materi roasting yang singkat dan ngena.
+
+Tugasmu:
+1.  **Pikirkan dulu dalam hati (langkah-demi-langkah):**
+    *   Lihat data profil ini: Username: @${username}, Bio: "${bio}", Followers: ${followers}, Following: ${following}, Postingan: ${posts}, Status: ${isPrivate}.
+    *   Apa yang aneh atau lucu dari kombinasi data ini? Apakah ada ketidaksesuaian? (misal: followers banyak tapi postingan nol, bio sok bijak tapi akun private, following ribuan tapi followers puluhan).
+    *   Pilih SATU sudut pandang paling menarik untuk dijadikan bahan roasting.
+
+2.  **Sampaikan Roast-nya:**
+    *   Setelah kamu punya ide, sampaikan roast-nya dalam 1-2 kalimat yang santai, pedas, dan lucu.
+    *   Gunakan bahasa tongkrongan yang natural.
+    *   Langsung ke intinya, jangan bertele-tele.
+
+Contoh Proses Berpikir:
+(Data: @user, Bio: "Live, Laugh, Love", Followers: 100, Postingan: 0, Private: Ya)
+1.  *Pikiran:* "Oke, bio-nya klise banget 'Live, Laugh, Love'. Akunnya private, postingan nol. Ini akun jelas buat tujuan spesifik, bukan buat publik. Kombinasi bio positif dengan kelakuan misterius ini lucu."
+2.  *Hasil Roast:* "Bio-nya sih 'Live, Laugh, Love', tapi akunnya digembok dan postingan nol. Ini 'Live, Laugh, Love' di story close friends doang ya, sambil ngeliatin story mantan?"
+
+Sekarang, lakukan hal yang sama untuk profil di bawah ini. JANGAN tampilkan proses berpikirmu, hanya sampaikan hasil roast akhirnya.
+
+Data Profil Target:
+- Username: @${username}
+- Bio: "${bio}"
+- Followers: ${followers}
+- Following: ${following}
+- Postingan: ${posts}
+- Status Akun: ${isPrivate}
+`;
+    
+    console.log('--- GENERATING WITH CHAIN-OF-THOUGHT PROMPT ---')
     const result = await model.generateContent(prompt)
     const response = await result.response
     const roast = response.text()
