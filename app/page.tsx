@@ -170,35 +170,35 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header onReset={resetForm} showReset={!!profileData} />
       
-      <main className="container mx-auto px-4 py-8 pt-24">
+      <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 pt-24 md:pt-32">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-10 md:mb-16"
         >
           <motion.div
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2 }}
-            className="flex items-center justify-center gap-3 mb-6"
+            className="flex items-center justify-center gap-4 mb-4"
           >
-            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full">
-              <Flame className="w-8 h-8 text-white" />
+            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full shadow-lg">
+              <Flame className="w-7 h-7 md:w-8 md:h-8 text-white" />
             </div>
-            <h1 className="text-4xl md:text-6xl font-bold gradient-text">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold gradient-text">
               InstaRoaster
             </h1>
           </motion.div>
           
-          <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Masukkan username Instagram dan lihat AI kami membuat roast paling savage! 🔥
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            Masukkan username Instagram dan biarkan AI julid kami menganalisisnya untukmu! 🔥
           </p>
         </motion.div>
 
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           {!profileData ? (
             <>
               <StatsBox 
@@ -233,9 +233,14 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="text-center py-8 text-gray-500 dark:text-gray-400">
-        <p className="mb-4">by adhi septian</p>
-        <div className="flex justify-center items-center gap-6">
+      <footer className="text-center py-10 px-4 text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800">
+        <p className="mb-4 text-sm">
+          Crafted by{' '}
+          <a href="https://github.com/fvcksptnngrh" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-primary-500">
+            Adhi Septian
+          </a>
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
           <a 
             href="https://www.instagram.com/adhisptian" 
             target="_blank" 
@@ -243,16 +248,17 @@ export default function Home() {
             className="flex items-center gap-2 hover:text-primary-500 transition-colors"
           >
             <Instagram className="w-5 h-5" />
-            <span>Instagram</span>
+            <span>adhisptian</span>
           </a>
+          <div className="hidden sm:block w-px h-5 bg-gray-300 dark:bg-gray-600"></div>
           <a 
-            href="https://github.com/fvcksptnngrh" 
+            href="https://github.com/fvcksptnngrh/InstaRoast" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="flex items-center gap-2 hover:text-primary-500 transition-colors"
           >
             <Github className="w-5 h-5" />
-            <span>GitHub</span>
+            <span>Source Code</span>
           </a>
         </div>
       </footer>
