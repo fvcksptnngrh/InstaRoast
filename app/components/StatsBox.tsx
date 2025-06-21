@@ -88,8 +88,12 @@ export default function StatsBox({
             <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r ${stat.color} mb-3`}>
               <stat.icon className="w-6 h-6 text-white" />
             </div>
-            <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1">
-              {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
+            <div className="text-2xl font-bold text-gray-800 dark:text-white mb-1" suppressHydrationWarning>
+              {typeof stat.value === 'number' 
+                ? stat.label === "Rating Rata-rata" 
+                  ? stat.value.toFixed(1) 
+                  : stat.value.toLocaleString()
+                : stat.value}
               {stat.suffix}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
