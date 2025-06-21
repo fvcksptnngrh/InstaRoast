@@ -1,66 +1,77 @@
+import { redis } from '@/app/lib/redis'
 import { NextRequest, NextResponse } from 'next/server'
-
-// In-memory storage (in production, use database)
-let roastStats = {
-  totalRoasts: 145,
-  todayRoasts: 23,
-  topRoaster: "cristiano",
-  averageRating: 4.8,
-  lastUpdated: new Date().toISOString()
-}
 
 export async function GET() {
   try {
-    // Update today's count based on current date
-    const today = new Date().toDateString()
-    const lastUpdate = new Date(roastStats.lastUpdated).toDateString()
-    
-    if (today !== lastUpdate) {
-      roastStats.todayRoasts = 0
-      roastStats.lastUpdated = new Date().toISOString()
+    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const lastResetDate = await redis.get('stats:lastResetDate');
+
+    // Jika tanggal terakhir reset bukan hari ini, reset counter harian
+    if (lastResetDate !== today) {
+      await redis.set('stats:todayRoasts', 0);
+      await redis.set('stats:lastResetDate', today);
+      console.log(`Daily roast count reset for ${today}`);
     }
 
-    return NextResponse.json(roastStats)
+    // Ambil semua data dari Redis
+    const [totalRoasts, todayRoasts, lastVictim] = await Promise.all([
+      redis.get('stats:totalRoasts'),
+      redis.get('stats:todayRoasts'),
+      redis.get('stats:lastVictim'),
+    ]);
+
+    // Beri nilai default jika data belum ada di database
+    const stats = {
+      totalRoasts: Number(totalRoasts) || 0,
+      todayRoasts: Number(todayRoasts) || 0,
+      lastVictim: lastVictim || 'Belum ada',
+    };
+
+    return NextResponse.json(stats);
+
   } catch (error) {
-    console.error('Stats API error:', error)
-    return NextResponse.json(
-      { error: 'Gagal mengambil statistik' },
-      { status: 500 }
-    )
+    console.error('Stats API GET Error:', error);
+    return NextResponse.json({ error: 'Gagal mengambil statistik dari database.' }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { username } = await request.json()
+    const { username } = await request.json();
     
     if (!username) {
-      return NextResponse.json(
-        { error: 'Username diperlukan' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Username diperlukan' }, { status: 400 });
     }
 
-    // Update stats
-    roastStats.totalRoasts += 1
-    roastStats.todayRoasts += 1
-    roastStats.lastUpdated = new Date().toISOString()
+    // Gunakan pipeline untuk efisiensi
+    const pipe = redis.pipeline();
+    pipe.incr('stats:totalRoasts');
+    pipe.incr('stats:todayRoasts');
+    pipe.set('stats:lastVictim', username);
+    await pipe.exec();
 
-    // Simple logic to update top roaster (in production, use more sophisticated logic)
-    if (roastStats.totalRoasts % 10 === 0) {
-      roastStats.topRoaster = username
-    }
+    console.log(`Stats updated for user: ${username}`);
+
+    // Ambil data terbaru setelah diupdate untuk dikirim kembali
+    const [totalRoasts, todayRoasts, lastVictim] = await Promise.all([
+      redis.get('stats:totalRoasts'),
+      redis.get('stats:todayRoasts'),
+      redis.get('stats:lastVictim'),
+    ]);
+
+    const updatedStats = {
+      totalRoasts: Number(totalRoasts),
+      todayRoasts: Number(todayRoasts),
+      lastVictim: lastVictim,
+    };
 
     return NextResponse.json({
       success: true,
-      stats: roastStats,
-      message: `Berhasil menambah roast untuk ${username}!`
-    })
+      stats: updatedStats,
+    });
+
   } catch (error) {
-    console.error('Stats API error:', error)
-    return NextResponse.json(
-      { error: 'Gagal memperbarui statistik' },
-      { status: 500 }
-    )
+    console.error('Stats API POST Error:', error);
+    return NextResponse.json({ error: 'Gagal memperbarui statistik di database.' }, { status: 500 });
   }
 } 

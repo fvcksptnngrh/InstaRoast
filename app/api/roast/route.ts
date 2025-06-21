@@ -28,53 +28,45 @@ export async function POST(req: NextRequest) {
     
     // ✅ NEW: Adjust generation config for more creativity
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-flash", // Using the faster Flash model
       generationConfig: {
-        temperature: 1.0,      // Max creativity
-        topK: 40,            // Widen the choice of next words
-        topP: 0.95,          // Standard nucleus sampling
-        maxOutputTokens: 250,
+        temperature: 0.9,      // High creativity, but stable for Flash
+        topK: 50,
+        topP: 0.95,
+        maxOutputTokens: 400,
       },
     })
     
-    // ✅ NEW: Chain-of-Thought Prompting
-    const bio = profileData?.bio || profileData?.biography || "Tidak ada bio";
+    // ✅ NEW: "Direct & Brutal" Prompt for Gemini Flash
+    const bio = profileData?.bio || profileData?.biography || "Tidak ada";
     const posts = profileData?.posts ?? 0;
     const followers = profileData?.followers || 0;
     const following = profileData?.following || 0;
     const isPrivate = profileData?.isPrivate ? "Private" : "Publik";
     
     const prompt = `
-Persona: Kamu adalah seorang komika stand-up yang cerdas dan jago observasi. Job-mu adalah melihat profil Instagram dan mengubahnya menjadi materi roasting yang singkat dan ngena.
+[INSTRUCTION]
+Your ONLY job is to write a brutal, unfiltered, and sarcastic roast about the following Instagram profile.
+Be direct, sharp, and funny. Use modern, casual Indonesian slang.
+The only rule is NO SARA and NO physical attacks. Everything else is fair game.
 
-Tugasmu:
-1.  **Pikirkan dulu dalam hati (langkah-demi-langkah):**
-    *   Lihat data profil ini: Username: @${username}, Bio: "${bio}", Followers: ${followers}, Following: ${following}, Postingan: ${posts}, Status: ${isPrivate}.
-    *   Apa yang aneh atau lucu dari kombinasi data ini? Apakah ada ketidaksesuaian? (misal: followers banyak tapi postingan nol, bio sok bijak tapi akun private, following ribuan tapi followers puluhan).
-    *   Pilih SATU sudut pandang paling menarik untuk dijadikan bahan roasting.
-
-2.  **Sampaikan Roast-nya:**
-    *   Setelah kamu punya ide, sampaikan roast-nya dalam 1-2 kalimat yang santai, pedas, dan lucu.
-    *   Gunakan bahasa tongkrongan yang natural.
-    *   Langsung ke intinya, jangan bertele-tele.
-
-Contoh Proses Berpikir:
-(Data: @user, Bio: "Live, Laugh, Love", Followers: 100, Postingan: 0, Private: Ya)
-1.  *Pikiran:* "Oke, bio-nya klise banget 'Live, Laugh, Love'. Akunnya private, postingan nol. Ini akun jelas buat tujuan spesifik, bukan buat publik. Kombinasi bio positif dengan kelakuan misterius ini lucu."
-2.  *Hasil Roast:* "Bio-nya sih 'Live, Laugh, Love', tapi akunnya digembok dan postingan nol. Ini 'Live, Laugh, Love' di story close friends doang ya, sambil ngeliatin story mantan?"
-
-Sekarang, lakukan hal yang sama untuk profil di bawah ini. JANGAN tampilkan proses berpikirmu, hanya sampaikan hasil roast akhirnya.
-
-Data Profil Target:
+[DATA TO ROAST]
 - Username: @${username}
 - Bio: "${bio}"
 - Followers: ${followers}
 - Following: ${following}
-- Postingan: ${posts}
-- Status Akun: ${isPrivate}
+- Posts: ${posts}
+- Status: ${isPrivate}
+
+[ROASTING EXAMPLES]
+- (If bio is empty): Bio aja kosong, gimana mau ngisi hati orang? Fokusnya cuma jadi silent reader story mantan kayaknya.
+- (If following > followers): Nge-follow ribuan orang tapi yang follow balik cuma segitu? Ini namanya bukan main sosmed, tapi lagi audisi minta di-notice.
+- (If private account): Akun digembok, postingan nol. Ini Instagram atau brankas bank? Isinya pasti cuma kumpulan aib yang takut kesebar.
+
+Now, deliver your roast. No filter.
 `;
     
-    console.log('--- GENERATING WITH CHAIN-OF-THOUGHT PROMPT ---')
+    console.log('--- GENERATING WITH DIRECT & BRUTAL PROMPT ---')
     const result = await model.generateContent(prompt)
     const response = await result.response
     const roast = response.text()
@@ -84,7 +76,7 @@ Data Profil Target:
       username,
       profileData,
       roast: roast.trim(),
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-flash", // Explicitly state the model used
       timestamp: new Date().toISOString()
     })
     

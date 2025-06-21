@@ -45,11 +45,11 @@ export default function Home() {
   const [roastData, setRoastData] = useState<RoastData | null>(null)
   const [error, setError] = useState('')
   const [stats, setStats] = useState({
-    totalRoasts: 145,
-    todayRoasts: 23,
-    topRoaster: "cristiano",
-    averageRating: 4.8
+    totalRoasts: 0,
+    todayRoasts: 0,
+    lastVictim: '...'
   })
+  const [roastError, setRoastError] = useState<string | null>(null)
 
   // Fetch stats on component mount
   useEffect(() => {
@@ -204,8 +204,7 @@ export default function Home() {
               <StatsBox 
                 totalRoasts={stats.totalRoasts}
                 todayRoasts={stats.todayRoasts}
-                topRoaster={stats.topRoaster}
-                averageRating={stats.averageRating}
+                lastVictim={stats.lastVictim}
               />
               <RoastForm onSubmit={handleRoast} isLoading={isLoading} error={error} />
             </>
