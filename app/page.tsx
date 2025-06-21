@@ -106,7 +106,10 @@ export default function Home() {
       })
 
       if (!profileResponse.ok) {
-        throw new Error('Gagal mengambil data profil')
+        // Coba baca detail error dari body respons
+        const errorBody = await profileResponse.json();
+        const errorDetails = errorBody.details ? `Detail: ${errorBody.details.join(', ')}` : `Status: ${profileResponse.status}`;
+        throw new Error(`Gagal mengambil data profil. ${errorDetails}`);
       }
 
       const profile = await profileResponse.json()
@@ -148,7 +151,11 @@ export default function Home() {
       await updateStats(inputUsername)
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Terjadi kesalahan yang tidak diketahui');
+      }
     } finally {
       setIsLoading(false)
     }

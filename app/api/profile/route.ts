@@ -83,94 +83,79 @@ const mockProfiles = {
 }
 
 export async function POST(request: NextRequest) {
+  const { username } = await request.json()
+  const errorLog: string[] = []
+
+  if (!username) {
+    return NextResponse.json({ error: 'Username wajib diisi' }, { status: 400 })
+  }
+
+  // --- Metode 1: Coba RapidAPI (Instagram Looter 2) ---
   try {
-    const { username } = await request.json()
-
-    if (!username) {
-      return NextResponse.json(
-        { error: 'Username wajib diisi' },
-        { status: 400 }
-      )
-    }
-
-    // 1. Coba RapidAPI (menggunakan Instagram Looter 2)
-    try {
-      const response = await fetch(
-        `https://instagram-looter2.p.rapidapi.com/profile/info?username=${username}`,
-        {
-          headers: {
-            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || 'YOUR_FALLBACK_KEY_HERE',
-            'X-RapidAPI-Host': 'instagram-looter2.p.rapidapi.com',
-          },
-        }
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log('--- Instagram Looter 2 API Response ---');
-        console.log(JSON.stringify(data, null, 2));
-
-        // PENTING: Struktur data mungkin berbeda. Kita akan coba beberapa kemungkinan.
-        // Coba struktur 1: data langsung
-        let user = data; 
-        
-        // Coba struktur 2: data di dalam properti 'user'
-        if (data.user) {
-          user = data.user
-        } 
-        // Coba struktur 3: data di dalam properti 'data'
-        else if (data.data) {
-          user = data.data
-        }
-
-        if (user && user.username) {
-          console.log('User data found, processing...');
-          return NextResponse.json({
-            username: user.username,
-            fullName: user.full_name || user.fullName, // Cek kedua kemungkinan nama properti
-            bio: user.biography || user.bio,
-            followers: user.edge_followed_by?.count ?? user.follower_count ?? 0,
-            following: user.edge_follow?.count ?? user.following_count ?? 0,
-            posts: user.edge_owner_to_timeline_media?.count ?? user.media_count ?? 0,
-            profilePic: user.profile_pic_url_hd || user.profile_pic_url || `https://picsum.photos/150/150?random=${Math.floor(Math.random() * 1000)}`,
-            isPrivate: user.is_private ?? false,
-            isVerified: user.is_verified ?? false
-          })
-        } else {
-           console.log('User data not found in response, falling back...');
-        }
-      } else {
-        console.error('--- Instagram Looter 2 API Error ---');
-        console.error(`Status: ${response.status}`);
-        const errorText = await response.text();
-        console.error(`Response: ${errorText}`);
+    const response = await fetch(
+      `https://instagram-looter2.p.rapidapi.com/profile/info?username=${username}`,
+      {
+        headers: {
+          'X-RapidAPI-Key': process.env.RAPIDAPI_KEY || '',
+          'X-RapidAPI-Host': 'instagram-looter2.p.rapidapi.com',
+        },
       }
-    } catch (err) {
-      console.error('--- Error in RapidAPI fetch block ---', err);
-      // Lanjut ke fallback
-    }
+    )
 
-    // 2. Fallback: Coba fetch langsung dari Instagram Web API
+    if (response.ok) {
+      const data = await response.json()
+      // ... (kode untuk memproses data 'user' seperti sebelumnya)
+      let user = data.data || data.user || data;
+      if (user && user.username) {
+        console.log('SUCCESS: Data found via RapidAPI.');
+        return NextResponse.json({
+          username: user.username,
+          fullName: user.full_name || user.fullName,
+          bio: user.biography || user.bio,
+          followers: user.edge_followed_by?.count ?? user.follower_count ?? 0,
+          following: user.edge_follow?.count ?? user.following_count ?? 0,
+          posts: user.edge_owner_to_timeline_media?.count ?? user.media_count ?? 0,
+          profilePic: user.profile_pic_url_hd || user.profile_pic_url,
+          isPrivate: user.is_private ?? false,
+          isVerified: user.is_verified ?? false,
+        });
+      }
+    } else {
+      const errorText = await response.text();
+      errorLog.push(`RapidAPI Gagal (Status: ${response.status}). Respons: ${errorText.substring(0, 100)}...`);
+    }
+  } catch (err: any) {
+    errorLog.push(`RapidAPI Exception: ${err.message}`);
+  }
+  
+  // --- Metode 2: Fallback ke Direct Instagram API ---
+  try {
     const user = await fetchInstagramPublicProfile(username)
     if (user) {
+      console.log('SUCCESS: Data found via Direct Instagram Fetch.');
       return NextResponse.json(user)
+    } else {
+      errorLog.push('Direct Instagram Fetch Gagal: Fungsi mengembalikan null.');
     }
-
-    // 3. Fallback: Mock data (hanya untuk username tertentu)
-    if (username in mockProfiles) {
-      return NextResponse.json(mockProfiles[username as keyof typeof mockProfiles])
-    }
-
-    // Jika semua gagal
-    return NextResponse.json(
-      { error: 'Gagal mengambil data profil. Username tidak ditemukan atau terjadi kesalahan.' },
-      { status: 404 }
-    )
-  } catch (error) {
-    console.error('Profile API error:', error)
-    return NextResponse.json(
-      { error: 'Gagal mengambil data profil. Terjadi kesalahan pada server.' },
-      { status: 500 }
-    )
+  } catch (err: any) {
+     errorLog.push(`Direct Instagram Exception: ${err.message}`);
   }
+
+  // --- Metode 3: Fallback ke Mock Data ---
+  if (username in mockProfiles) {
+    console.log('SUCCESS: Data found in Mock Profiles.');
+    return NextResponse.json(mockProfiles[username as keyof typeof mockProfiles])
+  } else {
+    errorLog.push('Data tidak ditemukan di Mock Profiles.');
+  }
+
+  // --- Jika Semua Gagal ---
+  console.error("FINAL FAILURE: All methods failed.", errorLog);
+  return NextResponse.json(
+    { 
+      error: 'Gagal mengambil data profil setelah mencoba semua metode.',
+      details: errorLog 
+    },
+    { status: 500 }
+  )
 } 
