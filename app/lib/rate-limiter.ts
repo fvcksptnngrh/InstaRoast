@@ -67,13 +67,14 @@ export class RateLimiter {
 
   private async getActiveAccounts(windowStart: number): Promise<Array<{id: string, timestamp: number}>> {
     const key = 'rate_limit:active_accounts'
-    const accounts = await redis.zrangebyscore(key, windowStart, '+inf', 'WITHSCORES')
+    
+    const accounts = await redis.zrange(key, windowStart, '+inf', { byScore: true, withScores: true })
     
     const activeAccounts: Array<{id: string, timestamp: number}> = []
     for (let i = 0; i < accounts.length; i += 2) {
       activeAccounts.push({
-        id: accounts[i],
-        timestamp: parseInt(accounts[i + 1])
+        id: accounts[i] as string,
+        timestamp: Number(accounts[i + 1])
       })
     }
     
@@ -85,7 +86,7 @@ export class RateLimiter {
     const key = 'rate_limit:active_accounts'
     
     // Add to sorted set with timestamp as score
-    await redis.zadd(key, timestamp, identifier)
+    await redis.zadd(key, { score: timestamp, member: identifier })
     
     // Clean up old entries (older than 20 minutes)
     const cutoff = timestamp - this.windowMs
