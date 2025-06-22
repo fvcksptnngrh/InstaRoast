@@ -8,13 +8,15 @@ interface RoastFormProps {
   onSubmit: (username: string) => void
   isLoading: boolean
   error: string
+  disabled?: boolean
 }
 
-export default function RoastForm({ onSubmit, isLoading, error }: RoastFormProps) {
+export default function RoastForm({ onSubmit, isLoading, error, disabled = false }: RoastFormProps) {
   const [username, setUsername] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (disabled) return
     onSubmit(username.trim())
   }
 
@@ -57,8 +59,8 @@ export default function RoastForm({ onSubmit, isLoading, error }: RoastFormProps
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="misal: cristiano"
-                className="w-full pl-9 pr-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300"
-                disabled={isLoading}
+                className="w-full pl-9 pr-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={isLoading || disabled}
               />
             </div>
           </div>
@@ -76,10 +78,10 @@ export default function RoastForm({ onSubmit, isLoading, error }: RoastFormProps
 
           <motion.button
             type="submit"
-            disabled={isLoading || !username.trim()}
+            disabled={isLoading || !username.trim() || disabled}
             className="w-full flex items-center justify-center gap-3 py-3 px-6 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white font-bold rounded-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-primary-500/40 text-lg"
-            whileHover={{ scale: isLoading ? 1 : 1.03 }}
-            whileTap={{ scale: isLoading ? 1 : 0.97 }}
+            whileHover={{ scale: (isLoading || disabled) ? 1 : 1.03 }}
+            whileTap={{ scale: (isLoading || disabled) ? 1 : 0.97 }}
           >
             {isLoading ? (
               <>
@@ -89,6 +91,11 @@ export default function RoastForm({ onSubmit, isLoading, error }: RoastFormProps
                   className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                 />
                 Sedang Roasting...
+              </>
+            ) : disabled ? (
+              <>
+                <Sparkles className="w-5 h-5" />
+                <span>Rate Limit Exceeded</span>
               </>
             ) : (
               <>

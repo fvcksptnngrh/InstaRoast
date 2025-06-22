@@ -8,6 +8,7 @@ import ProfileCard from './components/ProfileCard'
 import RoastResult from './components/RoastResult'
 import Header from './components/Header'
 import StatsBox from './components/StatsBox'
+import RateLimitStatus from './components/RateLimitStatus'
 
 interface ProfileData {
   username: string
@@ -50,6 +51,7 @@ export default function Home() {
     lastVictim: '...'
   })
   const [roastError, setRoastError] = useState<string | null>(null)
+  const [canAccess, setCanAccess] = useState(true)
 
   // Fetch stats on component mount
   useEffect(() => {
@@ -88,6 +90,11 @@ export default function Home() {
   const handleRoast = async (inputUsername: string) => {
     if (!inputUsername.trim()) {
       setError('Masukkan username Instagram yang valid')
+      return
+    }
+
+    if (!canAccess) {
+      setError('Rate limit exceeded. Please wait before trying again.')
       return
     }
 
@@ -140,6 +147,10 @@ export default function Home() {
       })
 
       if (!roastResponse.ok) {
+        const errorData = await roastResponse.json()
+        if (roastResponse.status === 429) {
+          throw new Error(errorData.message || 'Rate limit exceeded')
+        }
         throw new Error('Gagal menghasilkan roast')
       }
 
@@ -206,7 +217,19 @@ export default function Home() {
                 todayRoasts={stats.todayRoasts}
                 lastVictim={stats.lastVictim}
               />
-              <RoastForm onSubmit={handleRoast} isLoading={isLoading} error={error} />
+              
+              {/* Rate Limit Status */}
+              <RateLimitStatus 
+                username={username} 
+                onStatusChange={setCanAccess}
+              />
+              
+              <RoastForm 
+                onSubmit={handleRoast} 
+                isLoading={isLoading} 
+                error={error}
+                disabled={!canAccess}
+              />
             </>
           ) : (
             <motion.div

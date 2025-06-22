@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { redis } from '@/app/lib/redis'
 
 // Instagram Public API - No login required
 async function fetchInstagramPublicProfile(username: string) {
@@ -85,9 +86,22 @@ const mockProfiles = {
 export async function POST(request: NextRequest) {
   const { username } = await request.json()
   const errorLog: string[] = []
+  const cacheKey = `profile_cache:${username}`
+  const CACHE_DURATION_SECONDS = 2 * 60 * 60 // 2 jam
 
   if (!username) {
     return NextResponse.json({ error: 'Username wajib diisi' }, { status: 400 })
+  }
+
+  // --- Metode 0: Cek Redis Cache ---
+  try {
+    const cachedProfile = await redis.get(cacheKey)
+    if (cachedProfile) {
+      console.log(`SUCCESS: Data found for ${username} in Redis Cache.`);
+      return NextResponse.json(cachedProfile)
+    }
+  } catch (err: any) {
+    errorLog.push(`Redis Cache Read Exception: ${err.message}`)
   }
 
   // --- Metode 1: Coba RapidAPI (Instagram Looter 2) ---
@@ -104,11 +118,10 @@ export async function POST(request: NextRequest) {
 
     if (response.ok) {
       const data = await response.json()
-      // ... (kode untuk memproses data 'user' seperti sebelumnya)
       let user = data.data || data.user || data;
       if (user && user.username) {
         console.log('SUCCESS: Data found via RapidAPI.');
-        return NextResponse.json({
+        const profileData = {
           username: user.username,
           fullName: user.full_name || user.fullName,
           bio: user.biography || user.bio,
@@ -118,7 +131,17 @@ export async function POST(request: NextRequest) {
           profilePic: user.profile_pic_url_hd || user.profile_pic_url,
           isPrivate: user.is_private ?? false,
           isVerified: user.is_verified ?? false,
-        });
+        };
+
+        // Simpan ke cache
+        try {
+          await redis.set(cacheKey, JSON.stringify(profileData), { ex: CACHE_DURATION_SECONDS });
+          console.log(`CACHE: Profile for ${username} stored in Redis for ${CACHE_DURATION_SECONDS}s.`);
+        } catch (cacheErr: any) {
+           errorLog.push(`Redis Cache Write Exception: ${cacheErr.message}`);
+        }
+
+        return NextResponse.json(profileData);
       }
     } else {
       const errorText = await response.text();

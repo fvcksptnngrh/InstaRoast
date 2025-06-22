@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimiter } from '@/app/lib/rate-limiter'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
@@ -24,6 +25,19 @@ export async function POST(req: NextRequest) {
         success: false,
         error: 'Username is required'
       }, { status: 400 })
+    }
+
+    // ✅ NEW: Rate limiting check
+    const rateLimitResult = await rateLimiter.checkRateLimit(username)
+    
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json({
+        success: false,
+        error: 'Rate limit exceeded',
+        message: rateLimitResult.message,
+        remaining: rateLimitResult.remaining,
+        resetTime: new Date(rateLimitResult.resetTime).toISOString()
+      }, { status: 429 })
     }
     
     // ✅ NEW: Adjust generation config for more creativity
@@ -77,7 +91,11 @@ Now, deliver your roast. No filter.
       profileData,
       roast: roast.trim(),
       model: "gemini-1.5-flash", // Explicitly state the model used
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      rateLimit: {
+        remaining: rateLimitResult.remaining,
+        resetTime: new Date(rateLimitResult.resetTime).toISOString()
+      }
     })
     
   } catch (error: any) {

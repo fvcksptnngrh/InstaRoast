@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { redis } from '@/app/lib/redis'
 
 // Instagram Public API - No login required
 async function fetchInstagramPublicFeed(username: string) {
@@ -133,38 +134,66 @@ function generateMockFeed(username: string) {
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const { username } = await req.json()
-    
-    // Instagram scraping logic here
-    const posts = await scrapeInstagramPosts(username)
-    
-    // ✅ FIX: Add proper TypeScript types
-    const totalPosts = posts.length
-    const totalLikes = posts.reduce((sum: number, post: any) => sum + (post.like_count || 0), 0)
-    const totalComments = posts.reduce((sum: number, post: any) => sum + (post.comments_count || 0), 0)
-    const averageLikes = totalPosts > 0 ? Math.round(totalLikes / totalPosts) : 0
-    const averageComments = totalPosts > 0 ? Math.round(totalComments / totalPosts) : 0
-    
-    return NextResponse.json({
-      success: true,
-      username,
-      posts,
-      stats: {
-        totalPosts,
-        totalLikes,
-        totalComments,
-        averageLikes,
-        averageComments
-      }
-    })
-    
-  } catch (error: any) {
-    return NextResponse.json({
-      success: false,
-      error: error.message
-    }, { status: 500 })
+  const { username } = await req.json()
+  const errorLog: string[] = []
+  const cacheKey = `feed_cache:${username}`
+  const CACHE_DURATION_SECONDS = 3 * 60 * 60 // 3 jam
+
+  if (!username) {
+    return NextResponse.json({ error: 'Username wajib diisi' }, { status: 400 })
   }
+
+  // --- Metode 0: Cek Redis Cache ---
+  try {
+    const cachedFeed = await redis.get(cacheKey)
+    if (cachedFeed) {
+      console.log(`SUCCESS: Feed data found for ${username} in Redis Cache.`);
+      return NextResponse.json(cachedFeed)
+    }
+  } catch (err: any) {
+    errorLog.push(`Redis Cache Read Exception: ${err.message}`)
+  }
+
+  // --- Metode 1: Coba Direct Instagram API ---
+  try {
+    const feedData = await fetchInstagramPublicFeed(username)
+    if (feedData) {
+      console.log('SUCCESS: Feed data found via Direct Instagram Fetch.');
+
+      // Simpan ke cache
+      try {
+        await redis.set(cacheKey, JSON.stringify(feedData), { ex: CACHE_DURATION_SECONDS });
+        console.log(`CACHE: Feed for ${username} stored in Redis for ${CACHE_DURATION_SECONDS}s.`);
+      } catch (cacheErr: any) {
+         errorLog.push(`Redis Cache Write Exception: ${cacheErr.message}`);
+      }
+
+      return NextResponse.json(feedData);
+    } else {
+      errorLog.push('Direct Instagram Fetch Gagal: Fungsi mengembalikan null.');
+    }
+  } catch (err: any) {
+     errorLog.push(`Direct Instagram Exception: ${err.message}`);
+  }
+
+  // --- Metode 2: Fallback ke Mock Data ---
+  if (username) { // Simple check to see if we can generate mock data
+    console.log('SUCCESS: Feed data generated from Mock Function.');
+    const mockData = generateMockFeed(username);
+    return NextResponse.json(mockData)
+  } else {
+    errorLog.push('Data tidak dapat digenerate dari Mock Function.');
+  }
+
+  // --- Jika Semua Gagal ---
+  console.error("FINAL FAILURE: All feed methods failed.", errorLog);
+  return NextResponse.json(
+    { 
+      error: 'Gagal mengambil data feed setelah mencoba semua metode.',
+      details: errorLog 
+    },
+    { status: 500 }
+  )
 }
 
 // ✅ FIX: Add proper interface
