@@ -90,7 +90,7 @@ export class RateLimiter {
     
     // Clean up old entries (older than 20 minutes)
     const cutoff = timestamp - this.windowMs
-    await redis.zremrangebyscore(key, '-inf', cutoff)
+    await redis.zremrangebyscore(key, Number.NEGATIVE_INFINITY, cutoff)
     
     // Set expiry on the key (optional, for cleanup)
     await redis.expire(key, this.windowMs / 1000)
