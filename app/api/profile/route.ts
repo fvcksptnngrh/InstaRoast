@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     const cachedProfile = await redis.get(cacheKey)
     if (cachedProfile) {
       console.log(`SUCCESS: Data found for ${username} in Redis Cache.`);
-      return NextResponse.json(cachedProfile)
+      return NextResponse.json(JSON.parse(cachedProfile as string))
     }
   } catch (err: any) {
     errorLog.push(`Redis Cache Read Exception: ${err.message}`)

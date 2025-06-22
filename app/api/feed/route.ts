@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
     const cachedFeed = await redis.get(cacheKey)
     if (cachedFeed) {
       console.log(`SUCCESS: Feed data found for ${username} in Redis Cache.`);
-      return NextResponse.json(cachedFeed)
+      return NextResponse.json(JSON.parse(cachedFeed as string))
     }
   } catch (err: any) {
     errorLog.push(`Redis Cache Read Exception: ${err.message}`)

@@ -217,12 +217,13 @@ export default function Home() {
                 todayRoasts={stats.todayRoasts}
                 lastVictim={stats.lastVictim}
               />
-              
-              {/* Rate Limit Status */}
-              <RateLimitStatus 
-                username={username} 
-                onStatusChange={setCanAccess}
-              />
+                {/* Rate Limit Status */}
+              <div className="my-8">
+                <RateLimitStatus 
+                  username={username} 
+                  onStatusChange={setCanAccess}
+                />
+              </div>
               
               <RoastForm 
                 onSubmit={handleRoast} 
@@ -256,13 +257,16 @@ export default function Home() {
       </main>
 
       <footer className="text-center py-10 px-4 text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800">
-        <p className="mb-4 text-sm">
+        <p className="mb-2 text-sm">
           Crafted by{' '}
           <a href="https://github.com/fvcksptnngrh" target="_blank" rel="noopener noreferrer" className="font-semibold hover:text-primary-500">
             Adhi Septian
           </a>
         </p>
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6">
+        <p className="mb-4 text-sm">
+          Terima kasih telah mencoba InstaRoaster!
+        </p>
+        <div className="flex justify-center items-center gap-4 sm:gap-6">
           <a 
             href="https://www.instagram.com/adhisptian" 
             target="_blank" 
@@ -271,16 +275,6 @@ export default function Home() {
           >
             <Instagram className="w-5 h-5" />
             <span>adhisptian</span>
-          </a>
-          <div className="hidden sm:block w-px h-5 bg-gray-300 dark:bg-gray-600"></div>
-          <a 
-            href="https://github.com/fvcksptnngrh/InstaRoast" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="flex items-center gap-2 hover:text-primary-500 transition-colors"
-          >
-            <Github className="w-5 h-5" />
-            <span>Source Code</span>
           </a>
         </div>
       </footer>
