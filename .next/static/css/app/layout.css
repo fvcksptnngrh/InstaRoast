@@ -673,6 +673,9 @@ video {
 .block {
   display: block;
 }
+.inline-block {
+  display: inline-block;
+}
 .flex {
   display: flex;
 }
@@ -908,6 +911,9 @@ video {
 .bg-white\/90 {
   background-color: rgb(255 255 255 / 0.9);
 }
+.bg-transparent {
+  background-color: transparent;
+}
 .bg-opacity-50 {
   --tw-bg-opacity: 0.5;
 }
@@ -990,6 +996,10 @@ video {
 .py-8 {
   padding-top: 2rem;
   padding-bottom: 2rem;
+}
+.py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 .pl-3\.5 {
   padding-left: 0.875rem;
@@ -1416,6 +1426,14 @@ video {
 
 .dark\:bg-gray-800\/90:is(.dark *) {
   background-color: rgb(31 41 55 / 0.9);
+}
+
+.dark\:bg-gray-700\/70:is(.dark *) {
+  background-color: rgb(55 65 81 / 0.7);
+}
+
+.dark\:bg-gray-800\/70:is(.dark *) {
+  background-color: rgb(31 41 55 / 0.7);
 }
 
 .dark\:from-gray-900:is(.dark *) {

@@ -4,47 +4,20 @@ import { motion } from 'framer-motion'
 import { Flame, X } from 'lucide-react'
 import ThemeToggle from './ThemeToggle'
 
-interface HeaderProps {
-  onReset: () => void
-  showReset: boolean
-}
-
-export default function Header({ onReset, showReset }: HeaderProps) {
+export default function Header() {
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800"
-    >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-        <motion.div
-          onClick={onReset}
-          className="flex items-center gap-3 cursor-pointer"
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: 'spring', stiffness: 300 }}
-        >
-          <div className="p-2 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg shadow">
-            <Flame className="w-6 h-6 text-white" />
-          </div>
-          <span className="text-xl font-bold gradient-text hidden sm:inline">InstaRoaster</span>
-        </motion.div>
-
-        {showReset && (
-          <motion.button
-            onClick={onReset}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 hover:bg-red-100 dark:bg-gray-800 dark:hover:bg-red-900/40 text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 font-semibold rounded-lg transition-all duration-200 text-sm"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <X className="w-4 h-4" />
-            <span className="hidden sm:inline">Reset</span>
-          </motion.button>
-        )}
-
-        <ThemeToggle />
+    <header className="flex items-center justify-between px-6 py-4 bg-transparent">
+      <div className="flex items-center gap-2">
+        <span className="text-2xl font-bold gradient-text flex items-center gap-2">
+          <span className="inline-block bg-gradient-to-r from-primary-500 to-secondary-500 rounded-lg p-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7 text-white">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364 1.386l-1.591 1.591M21 12h-2.25m-1.386 6.364l-1.591-1.591M12 21v-2.25m-6.364-1.386l1.591-1.591M3 12h2.25m1.386-6.364l1.591 1.591M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+            </svg>
+          </span>
+          InstaRoaster
+        </span>
       </div>
-    </motion.header>
+      <ThemeToggle />
+    </header>
   )
 } 
