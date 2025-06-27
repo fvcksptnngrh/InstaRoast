@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Flame, X } from 'lucide-react'
+import ThemeToggle from './ThemeToggle'
 
 interface HeaderProps {
   onReset: () => void
@@ -41,6 +42,8 @@ export default function Header({ onReset, showReset }: HeaderProps) {
             <span className="hidden sm:inline">Reset</span>
           </motion.button>
         )}
+
+        <ThemeToggle />
       </div>
     </motion.header>
   )
