@@ -8,7 +8,6 @@ import ProfileCard from './components/ProfileCard'
 import RoastResult from './components/RoastResult'
 import Header from './components/Header'
 import StatsBox from './components/StatsBox'
-import RateLimitStatus from './components/RateLimitStatus'
 
 interface ProfileData {
   username: string
@@ -217,19 +216,12 @@ export default function Home() {
                 todayRoasts={stats.todayRoasts}
                 lastVictim={stats.lastVictim}
               />
-                {/* Rate Limit Status */}
-              <div className="my-8">
-                <RateLimitStatus 
-                  username={username} 
-                  onStatusChange={setCanAccess}
-                />
-              </div>
-              
+              <div className="my-8" />
               <RoastForm 
                 onSubmit={handleRoast} 
                 isLoading={isLoading} 
                 error={error}
-                disabled={!canAccess}
+                disabled={false}
               />
             </>
           ) : (
