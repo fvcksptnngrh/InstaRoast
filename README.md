@@ -5,7 +5,7 @@ Aplikasi web yang menggunakan AI untuk membuat roast savage dari profil Instagra
 ## ✨ Fitur
 
 - 🔍 **Data Instagram Real-time**: Mengambil data profil dan feed dari Instagram tanpa login atau API key
-- 🤖 **AI Roasting**: Generate roast yang savage dan lucu berdasarkan data profil
+- 🤖 **AI Roasting**: Generate roast yang savage dan lucu berdasarkan data profile
 - 📊 **Analisis Feed**: Analisis mendalam tentang postingan, likes, komentar, dan engagement
 - 🎨 **UI Modern**: Interface yang cantik dengan animasi smooth menggunakan Framer Motion
 - 📱 **Responsive**: Bekerja sempurna di desktop dan mobile
