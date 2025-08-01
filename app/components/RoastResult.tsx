@@ -7,13 +7,16 @@ import { useState, useEffect } from 'react'
 interface RoastData {
   roast: string
   timestamp: string
+  model?: string
+  warning?: string
 }
 
 interface RoastResultProps {
   roast: RoastData | null
+  language?: string
 }
 
-export default function RoastResult({ roast }: RoastResultProps) {
+export default function RoastResult({ roast, language = 'id' }: RoastResultProps) {
   const [copied, setCopied] = useState(false)
   const [isShareSupported, setIsShareSupported] = useState(false)
 
@@ -33,7 +36,7 @@ export default function RoastResult({ roast }: RoastResultProps) {
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
       } catch (err) {
-        console.error('Gagal menyalin teks: ', err)
+        console.error(language === 'en' ? 'Failed to copy text: ' : 'Gagal menyalin teks: ', err)
       }
     }
   }
@@ -42,12 +45,12 @@ export default function RoastResult({ roast }: RoastResultProps) {
     if (roast?.roast && navigator.share) {
       try {
         await navigator.share({
-          title: 'Lihat roast savage ini! 🔥',
+          title: language === 'en' ? 'Check out this savage roast! 🔥' : 'Lihat roast savage ini! 🔥',
           text: roast.roast,
           url: window.location.href,
         })
       } catch (err) {
-        console.error('Gagal share: ', err)
+        console.error(language === 'en' ? 'Failed to share: ' : 'Gagal share: ', err)
       }
     }
   }
@@ -55,7 +58,9 @@ export default function RoastResult({ roast }: RoastResultProps) {
   if (!roast) {
     return (
       <div className="text-center p-8">
-        <p className="text-gray-500">Menunggu hasil roast...</p>
+        <p className="text-gray-500">
+          {language === 'en' ? 'Waiting for roast results...' : 'Menunggu hasil roast...'}
+        </p>
       </div>
     );
   }
@@ -71,7 +76,7 @@ export default function RoastResult({ roast }: RoastResultProps) {
           <Flame className="w-6 h-6 text-white" />
         </div>
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-          Hasil Roast
+          {language === 'en' ? 'Roast Results' : 'Hasil Roast'}
         </h2>
       </div>
 
@@ -81,6 +86,15 @@ export default function RoastResult({ roast }: RoastResultProps) {
         transition={{ delay: 0.2 }}
         className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl p-4 sm:p-6 mb-6"
       >
+        {roast.warning && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg text-yellow-700 dark:text-yellow-400 text-sm"
+          >
+            {roast.warning}
+          </motion.div>
+        )}
         <div className="space-y-4">
           {roast.roast.split('\n').map((paragraph, index) => (
             <motion.p
@@ -103,7 +117,16 @@ export default function RoastResult({ roast }: RoastResultProps) {
           transition={{ delay: 0.5 }}
           className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 order-last sm:order-first"
         >
-          Dibuat pada {new Date(roast.timestamp).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}
+          {language === 'en' 
+            ? `Created on ${new Date(roast.timestamp).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}`
+            : `Dibuat pada ${new Date(roast.timestamp).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}`
+          }
+          {roast.model && (
+            <span className="ml-1">
+              {language === 'en' ? ' using ' : ' menggunakan '}
+              <span className="font-medium">{roast.model}</span>
+            </span>
+          )}
         </motion.p>
 
         <div className="flex items-center gap-3">
@@ -114,7 +137,12 @@ export default function RoastResult({ roast }: RoastResultProps) {
             className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-300 text-sm font-medium"
           >
             <Copy className="w-4 h-4" />
-            <span>{copied ? 'Tersalin!' : 'Salin'}</span>
+            <span>
+              {copied 
+                ? (language === 'en' ? 'Copied!' : 'Tersalin!')
+                : (language === 'en' ? 'Copy' : 'Salin')
+              }
+            </span>
           </motion.button>
 
           {isShareSupported && (
@@ -125,11 +153,11 @@ export default function RoastResult({ roast }: RoastResultProps) {
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white rounded-lg transition-all duration-300 text-sm font-medium shadow-md"
             >
               <Share2 className="w-4 h-4" />
-              <span>Bagikan</span>
+              <span>{language === 'en' ? 'Share' : 'Bagikan'}</span>
             </motion.button>
           )}
         </div>
       </div>
     </motion.div>
   )
-} 
+}

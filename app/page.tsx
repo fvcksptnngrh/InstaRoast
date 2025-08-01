@@ -50,6 +50,7 @@ export default function Home() {
   })
   const [roastError, setRoastError] = useState<string | null>(null)
   const [canAccess, setCanAccess] = useState(true)
+  const [currentLanguage, setCurrentLanguage] = useState('id')
 
   // Fetch stats on component mount
   useEffect(() => {
@@ -85,14 +86,16 @@ export default function Home() {
     }
   }
 
-  const handleRoast = async (inputUsername: string) => {
+  const handleRoast = async (inputUsername: string, language: string = 'id') => {
+    setCurrentLanguage(language) // Save selected language
+    
     if (!inputUsername.trim()) {
-      setError('Masukkan username Instagram yang valid')
+      setError(language === 'en' ? 'Please enter a valid Instagram username' : 'Masukkan username Instagram yang valid')
       return
     }
 
     if (!canAccess) {
-      setError('Rate limit exceeded. Please wait before trying again.')
+      setError(language === 'en' ? 'Rate limit exceeded. Please wait before trying again.' : 'Rate limit terlampaui. Silakan tunggu sebelum mencoba lagi.')
       return
     }
 
@@ -140,7 +143,8 @@ export default function Home() {
         body: JSON.stringify({ 
           username: inputUsername,
           profileData: profile,
-          feedData: feed
+          feedData: feed,
+          language: language
         })
       })
 
@@ -149,7 +153,7 @@ export default function Home() {
         if (roastResponse.status === 429) {
           throw new Error(errorData.message || 'Rate limit exceeded')
         }
-        throw new Error('Gagal menghasilkan roast')
+        throw new Error(language === 'en' ? 'Failed to generate roast' : 'Gagal menghasilkan roast')
       }
 
       const roast = await roastResponse.json()
@@ -163,7 +167,7 @@ export default function Home() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('Terjadi kesalahan yang tidak diketahui');
+        setError(language === 'en' ? 'An unknown error occurred' : 'Terjadi kesalahan yang tidak diketahui');
       }
     } finally {
       setIsLoading(false)
@@ -201,7 +205,10 @@ export default function Home() {
           </motion.div>
           
           <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Masukkan username Instagram dan biarkan AI julid kami menganalisisnya untukmu! 🔥
+            {currentLanguage === 'en' 
+              ? 'Enter an Instagram username and let our savage AI analyze it for you! 🔥'
+              : 'Masukkan username Instagram dan biarkan AI julid kami menganalisisnya untukmu! 🔥'
+            }
           </p>
         </motion.div>
 
@@ -212,13 +219,16 @@ export default function Home() {
                 totalRoasts={stats.totalRoasts}
                 todayRoasts={stats.todayRoasts}
                 lastVictim={stats.lastVictim}
+                language={currentLanguage}
               />
               <div className="my-8" />
               <RoastForm 
-                onSubmit={handleRoast} 
-                isLoading={isLoading} 
+                onSubmit={handleRoast}
+                onLanguageChange={setCurrentLanguage}
+                initialLanguage={currentLanguage}
+                isLoading={isLoading}
                 error={error}
-                disabled={false}
+                disabled={!!roastData}
               />
             </>
           ) : (
@@ -227,9 +237,9 @@ export default function Home() {
               animate={{ opacity: 1 }}
               className="space-y-8"
             >
-              <ProfileCard profile={profileData} />
+              <ProfileCard profile={profileData} language={currentLanguage} />
               
-              <RoastResult roast={roastData} />
+              <RoastResult roast={roastData} language={currentLanguage} />
               
               <motion.button
                 onClick={resetForm}
@@ -238,7 +248,7 @@ export default function Home() {
                 whileTap={{ scale: 0.95 }}
               >
                 <RefreshCw className="w-5 h-5" />
-                Roast Profil Lain
+                {currentLanguage === 'en' ? 'Roast Another Profile' : 'Roast Profil Lain'}
               </motion.button>
             </motion.div>
           )}
@@ -253,7 +263,10 @@ export default function Home() {
           </a>
         </p>
         <p className="mb-4 text-sm">
-          Terima kasih telah mencoba InstaRoaster!
+          {currentLanguage === 'en' 
+            ? 'Thank you for trying InstaRoaster!'
+            : 'Terima kasih telah mencoba InstaRoaster!'
+          }
         </p>
         <div className="flex justify-center items-center gap-4 sm:gap-6">
           <a 
@@ -269,4 +282,4 @@ export default function Home() {
       </footer>
     </div>
   )
-} 
+}

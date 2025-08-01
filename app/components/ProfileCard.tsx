@@ -18,9 +18,10 @@ interface ProfileData {
 
 interface ProfileCardProps {
   profile: ProfileData
+  language?: string
 }
 
-export default function ProfileCard({ profile }: ProfileCardProps) {
+export default function ProfileCard({ profile, language = 'id' }: ProfileCardProps) {
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'M'
@@ -31,9 +32,21 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
   }
 
   const statItems = [
-    { icon: ImageIcon, label: 'postingan', value: formatNumber(profile.posts) },
-    { icon: Users, label: 'pengikut', value: formatNumber(profile.followers) },
-    { icon: UserPlus, label: 'mengikuti', value: formatNumber(profile.following) }
+    { 
+      icon: ImageIcon, 
+      label: language === 'en' ? 'posts' : 'postingan', 
+      value: formatNumber(profile.posts) 
+    },
+    { 
+      icon: Users, 
+      label: language === 'en' ? 'followers' : 'pengikut', 
+      value: formatNumber(profile.followers) 
+    },
+    { 
+      icon: UserPlus, 
+      label: language === 'en' ? 'following' : 'mengikuti', 
+      value: formatNumber(profile.following) 
+    }
   ];
 
   return (
@@ -81,7 +94,7 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
             {profile.isPrivate && (
               <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
                 <Shield className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
-                <span>Private</span>
+                <span>{language === 'en' ? 'Private' : 'Privat'}</span>
               </div>
             )}
           </motion.div>
@@ -131,4 +144,4 @@ export default function ProfileCard({ profile }: ProfileCardProps) {
       </div>
     </motion.div>
   )
-} 
+}

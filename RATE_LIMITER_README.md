@@ -121,14 +121,14 @@ Cek status rate limit untuk username tertentu:
 
 ## Perhitungan Rate Limit
 
-### Untuk API Gemini
+### Untuk DeepSeek API
 Dengan rate limit 4 akun per 20 menit:
 - **Per jam**: 12 akun unik
 - **Per hari**: 288 akun unik
 - **Per bulan**: ~8,640 akun unik
 
 ### Estimasi Cost
-- Gemini API: ~$0.001 per request
+- DeepSeek API: ~$0.001 per request (tergantung model dan panjang output)
 - Dengan 4 akun/20 menit = $0.004 per 20 menit
 - Per jam: $0.012
 - Per hari: $0.288
@@ -193,4 +193,4 @@ redis-cli DEL rate_limit:active_accounts
 
 4. **Dynamic Rate Limiting**
    - Adjust limits berdasarkan traffic
-   - Peak hours vs off-peak hours 
+   - Peak hours vs off-peak hours

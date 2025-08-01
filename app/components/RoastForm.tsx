@@ -2,22 +2,32 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Instagram, Zap, Sparkles } from 'lucide-react'
+import { Instagram, Zap, Sparkles, Globe } from 'lucide-react'
 
 interface RoastFormProps {
-  onSubmit: (username: string) => void
+  onSubmit: (username: string, language: string) => void
+  onLanguageChange?: (language: string) => void
   isLoading: boolean
   error: string
   disabled?: boolean
+  initialLanguage?: string
 }
 
-export default function RoastForm({ onSubmit, isLoading, error, disabled = false }: RoastFormProps) {
+export default function RoastForm({ onSubmit, onLanguageChange, isLoading, error, disabled = false, initialLanguage = 'id' }: RoastFormProps) {
   const [username, setUsername] = useState('')
+  const [language, setLanguage] = useState(initialLanguage)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (disabled) return
-    onSubmit(username.trim())
+    onSubmit(username.trim(), language)
+  }
+
+  const handleLanguageChange = (newLanguage: string) => {
+    setLanguage(newLanguage)
+    if (onLanguageChange) {
+      onLanguageChange(newLanguage)
+    }
   }
 
   return (
@@ -37,17 +47,35 @@ export default function RoastForm({ onSubmit, isLoading, error, disabled = false
             <Instagram className="w-8 h-8 text-white" />
           </motion.div>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-            Mulai Analisis Julid
+            {language === 'en' ? 'Start Savage Analysis' : 'Mulai Analisis Julid'}
           </h2>
           <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-            Cari tau "red flag" dari sebuah profil
+            {language === 'en' ? 'Discover the "red flags" of any profile' : 'Cari tau "red flag" dari sebuah profil'}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Language Selector */}
+          <div>
+            <label htmlFor="language" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <Globe className="w-4 h-4 inline mr-1" />
+              {language === 'en' ? 'Roast Language' : 'Bahasa Roast'}
+            </label>
+            <select
+              id="language"
+              value={language}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              className="w-full px-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={isLoading || disabled}
+            >
+              <option value="id">🇮🇩 Bahasa Indonesia</option>
+              <option value="en">🇺🇸 English</option>
+            </select>
+          </div>
+
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Username Instagram
+              {language === 'en' ? 'Instagram Username' : 'Username Instagram'}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -58,7 +86,7 @@ export default function RoastForm({ onSubmit, isLoading, error, disabled = false
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="misal: cristiano"
+                placeholder={language === 'en' ? 'e.g: cristiano' : 'misal: cristiano'}
                 className="w-full pl-9 pr-4 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 disabled={isLoading || disabled}
               />
@@ -71,7 +99,7 @@ export default function RoastForm({ onSubmit, isLoading, error, disabled = false
               animate={{ opacity: 1, y: 0 }}
               className="p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg text-red-800 dark:text-red-300 text-sm"
             >
-              <p className="font-bold mb-1">Terjadi Kesalahan</p>
+              <p className="font-bold mb-1">{language === 'en' ? 'Error Occurred' : 'Terjadi Kesalahan'}</p>
               <p>{error}</p>
             </motion.div>
           )}
@@ -90,17 +118,17 @@ export default function RoastForm({ onSubmit, isLoading, error, disabled = false
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                 />
-                Sedang Roasting...
+                {language === 'en' ? 'Roasting...' : 'Sedang Roasting...'}
               </>
             ) : disabled ? (
               <>
                 <Sparkles className="w-5 h-5" />
-                <span>Rate Limit Exceeded</span>
+                <span>{language === 'en' ? 'Rate Limit Exceeded' : 'Rate Limit Terlampaui'}</span>
               </>
             ) : (
               <>
                 <Zap className="w-5 h-5" />
-                <span>Mulai Roasting</span>
+                <span>{language === 'en' ? 'Start Roasting' : 'Mulai Roasting'}</span>
               </>
             )}
           </motion.button>
@@ -108,10 +136,13 @@ export default function RoastForm({ onSubmit, isLoading, error, disabled = false
 
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Powered by Gemini AI. Dibuat untuk tujuan hiburan.
+            {language === 'en' 
+              ? 'Powered by DeepSeek AI. Made for entertainment purposes.' 
+              : 'Powered by DeepSeek AI. Dibuat untuk tujuan hiburan.'
+            }
           </p>
         </div>
       </div>
     </motion.div>
   )
-} 
+}
