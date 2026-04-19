@@ -106,30 +106,33 @@ export default function Home() {
     setRoastData(null)
 
     try {
-      // Fetch profile data
-      const profileResponse = await fetch('/api/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: inputUsername })
-      })
+      // 🚀 PARALLEL PROCESSING - Fetch profile and feed simultaneously
+      const [profilePromise, feedPromise] = [
+        fetch('/api/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: inputUsername })
+        }),
+        fetch('/api/feed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: inputUsername })
+        })
+      ]
 
+      // Wait for profile first (critical data)
+      const profileResponse = await profilePromise
       if (!profileResponse.ok) {
-        // Coba baca detail error dari body respons
         const errorBody = await profileResponse.json();
         const errorDetails = errorBody.details ? `Detail: ${errorBody.details.join(', ')}` : `Status: ${profileResponse.status}`;
         throw new Error(`Gagal mengambil data profil. ${errorDetails}`);
       }
 
       const profile = await profileResponse.json()
-      setProfileData(profile)
+      setProfileData(profile) // Show profile immediately
 
-      // Fetch feed data for more detailed roasting
-      const feedResponse = await fetch('/api/feed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: inputUsername })
-      })
-
+      // Wait for feed (optional data) 
+      const feedResponse = await feedPromise
       let feed = null
       if (feedResponse.ok) {
         feed = await feedResponse.json()
@@ -160,8 +163,8 @@ export default function Home() {
       setRoastData(roast)
       setUsername(inputUsername)
 
-      // Update stats after successful roast
-      await updateStats(inputUsername)
+      // 🚀 Update stats in background (non-blocking)
+      updateStats(inputUsername).catch(console.error) // Don't wait for this
 
     } catch (err) {
       if (err instanceof Error) {
