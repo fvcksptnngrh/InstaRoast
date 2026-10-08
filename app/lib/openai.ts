@@ -1,7 +1,10 @@
 import OpenAI from 'openai'
 
 export const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
+    })
   : null
 
 export interface RoastInput {
@@ -46,11 +49,13 @@ function buildUserPrompt(input: RoastInput): string {
 
 export async function generateRoast(input: RoastInput): Promise<string> {
   if (!openai) {
-    throw new Error('OpenAI client not initialized (OPENAI_API_KEY missing)')
+    throw new Error('AI client not initialized (OPENAI_API_KEY missing)')
   }
 
+  const model = process.env.OPENAI_MODEL || 'gh/gpt-4o-mini'
+
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model,
     messages: [
       { role: 'system', content: SYSTEM_PROMPTS[input.language] },
       { role: 'user', content: buildUserPrompt(input) },
@@ -61,7 +66,7 @@ export async function generateRoast(input: RoastInput): Promise<string> {
 
   const text = completion.choices[0]?.message?.content?.trim()
   if (!text) {
-    throw new Error('OpenAI returned empty response')
+    throw new Error('AI returned empty response')
   }
   return text
 }
