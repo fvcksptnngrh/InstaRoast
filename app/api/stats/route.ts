@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { redis } from '@/app/lib/redis'
 import { NextRequest, NextResponse } from 'next/server'
 
