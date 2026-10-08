@@ -203,7 +203,7 @@ export default function Home() {
               <Flame className="w-7 h-7 md:w-8 md:h-8 text-white" />
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold gradient-text">
-              InstaRoaster
+              InstaRoast
             </h1>
           </motion.div>
           
@@ -267,8 +267,8 @@ export default function Home() {
         </p>
         <p className="mb-4 text-sm">
           {currentLanguage === 'en' 
-            ? 'Thank you for trying InstaRoaster!'
-            : 'Terima kasih telah mencoba InstaRoaster!'
+            ? 'Thank you for trying InstaRoast!'
+            : 'Terima kasih telah mencoba InstaRoast!'
           }
         </p>
         <div className="flex justify-center items-center gap-4 sm:gap-6">

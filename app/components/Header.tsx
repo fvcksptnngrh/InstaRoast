@@ -12,7 +12,7 @@ export default function Header() {
           <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full shadow-lg">
             <Flame className="w-7 h-7 md:w-8 md:h-8 text-white" />
           </div>
-          InstaRoaster
+          InstaRoast
         </span>
       </div>
       <ThemeToggle />
